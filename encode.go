@@ -145,7 +145,7 @@ func Encode(dst, src []byte) []byte {
 	if lit != len(src) {
 		d += emitLiteral(dst[d:], src[lit:])
 	}
-	return dst[:d]
+	return d
 }
 
 // MaxEncodedLen returns the maximum length of a snappy block, given its

@@ -79,7 +79,7 @@ func emitCopy(dst []byte, offset, length int) int {
 // slice of dst if dst was large enough to hold the entire encoded block.
 // Otherwise, a newly allocated slice will be returned.
 // It is valid to pass a nil dst.
-func Encode(dst, src []byte) []byte {
+func Encode(dst, src []byte) []byte, int {
 	if n := MaxEncodedLen(len(src)); len(dst) < n {
 		dst = make([]byte, n)
 	}
@@ -92,7 +92,7 @@ func Encode(dst, src []byte) []byte {
 		if len(src) != 0 {
 			d += emitLiteral(dst[d:], src)
 		}
-		return dst[:d]
+		return dst[:d], d
 	}
 
 	// Initialize the hash table. Its size ranges from 1<<8 to 1<<14 inclusive.
@@ -145,7 +145,7 @@ func Encode(dst, src []byte) []byte {
 	if lit != len(src) {
 		d += emitLiteral(dst[d:], src[lit:])
 	}
-	return d
+	return dst[:d], d
 }
 
 // MaxEncodedLen returns the maximum length of a snappy block, given its

@@ -93,7 +93,7 @@ func TestInvalidVarint(t *testing.T) {
 	if _, err := DecodedLen(data); err != ErrCorrupt {
 		t.Errorf("DecodedLen: got %v, want ErrCorrupt", err)
 	}
-	if _, err := Decode(nil, data); err != ErrCorrupt {
+	if _, _, err := Decode(nil, data); err != ErrCorrupt {
 		t.Errorf("Decode: got %v, want ErrCorrupt", err)
 	}
 }
@@ -213,7 +213,7 @@ func TestWriterReset(t *testing.T) {
 }
 
 func benchDecode(b *testing.B, src []byte) {
-	encoded := Encode(nil, src)
+	encoded, _ := Encode(nil, src)
 	// Bandwidth is in amount of uncompressed data.
 	b.SetBytes(int64(len(src)))
 	b.ResetTimer()

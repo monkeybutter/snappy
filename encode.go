@@ -79,7 +79,7 @@ func emitCopy(dst []byte, offset, length int) int {
 // slice of dst if dst was large enough to hold the entire encoded block.
 // Otherwise, a newly allocated slice will be returned.
 // It is valid to pass a nil dst.
-func Encode(dst, src []byte) []byte, int {
+func Encode(dst, src []byte) ([]byte, int) {
 	if n := MaxEncodedLen(len(src)); len(dst) < n {
 		dst = make([]byte, n)
 	}
@@ -226,7 +226,7 @@ func (w *Writer) Write(p []byte) (n int, errRet error) {
 		// Compress the buffer, discarding the result if the improvement
 		// isn't at least 12.5%.
 		chunkType := uint8(chunkTypeCompressedData)
-		chunkBody := Encode(w.enc, uncompressed)
+		chunkBody, _ := Encode(w.enc, uncompressed)
 		if len(chunkBody) >= len(uncompressed)-len(uncompressed)/8 {
 			chunkType, chunkBody = chunkTypeUncompressedData, uncompressed
 		}

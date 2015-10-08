@@ -47,7 +47,7 @@ func decodedLen(src []byte) (blockLen, headerLen int, err error) {
 func Decode(dst, src []byte) ([]byte, int, error) {
 	dLen, s, err := decodedLen(src)
 	if err != nil {
-		return nil, nil, err
+		return nil, 0, err
 	}
 	if len(dst) < dLen {
 		dst = make([]byte, dLen)
@@ -64,34 +64,34 @@ func Decode(dst, src []byte) ([]byte, int, error) {
 			case x == 60:
 				s += 2
 				if s > len(src) {
-					return nil, nil, ErrCorrupt
+					return nil, 0, ErrCorrupt
 				}
 				x = uint(src[s-1])
 			case x == 61:
 				s += 3
 				if s > len(src) {
-					return nil, nil, ErrCorrupt
+					return nil, 0, ErrCorrupt
 				}
 				x = uint(src[s-2]) | uint(src[s-1])<<8
 			case x == 62:
 				s += 4
 				if s > len(src) {
-					return nil, nil, ErrCorrupt
+					return nil, 0, ErrCorrupt
 				}
 				x = uint(src[s-3]) | uint(src[s-2])<<8 | uint(src[s-1])<<16
 			case x == 63:
 				s += 5
 				if s > len(src) {
-					return nil, nil, ErrCorrupt
+					return nil, 0, ErrCorrupt
 				}
 				x = uint(src[s-4]) | uint(src[s-3])<<8 | uint(src[s-2])<<16 | uint(src[s-1])<<24
 			}
 			length = int(x + 1)
 			if length <= 0 {
-				return nil, nil, errors.New("snappy: unsupported literal length")
+				return nil, 0, errors.New("snappy: unsupported literal length")
 			}
-			if length > len(nil, dst)-d || length > len(src)-s {
-				return nil, nil, ErrCorrupt
+			if length > len(dst)-d || length > len(src)-s {
+				return nil, 0, ErrCorrupt
 			}
 			copy(dst[d:], src[s:s+length])
 			d += length
@@ -101,7 +101,7 @@ func Decode(dst, src []byte) ([]byte, int, error) {
 		case tagCopy1:
 			s += 2
 			if s > len(src) {
-				return nil, nil, ErrCorrupt
+				return nil, 0, ErrCorrupt
 			}
 			length = 4 + int(src[s-2])>>2&0x7
 			offset = int(src[s-2])&0xe0<<3 | int(src[s-1])
@@ -109,25 +109,25 @@ func Decode(dst, src []byte) ([]byte, int, error) {
 		case tagCopy2:
 			s += 3
 			if s > len(src) {
-				return nil, nil, ErrCorrupt
+				return nil, 0, ErrCorrupt
 			}
 			length = 1 + int(src[s-3])>>2
 			offset = int(src[s-2]) | int(src[s-1])<<8
 
 		case tagCopy4:
-			return nil, nil, errors.New("snappy: unsupported COPY_4 tag")
+			return nil, 0, errors.New("snappy: unsupported COPY_4 tag")
 		}
 
 		end := d + length
 		if offset > d || end > len(dst) {
-			return nil, nil, ErrCorrupt
+			return nil, 0, ErrCorrupt
 		}
 		for ; d < end; d++ {
 			dst[d] = dst[d-offset]
 		}
 	}
 	if d != dLen {
-		return nil, nil, ErrCorrupt
+		return nil, 0, ErrCorrupt
 	}
 	return dst[:d], d, nil
 }
@@ -228,7 +228,7 @@ func (r *Reader) Read(p []byte) (int, error) {
 				r.err = ErrCorrupt
 				return 0, r.err
 			}
-			if _, err := Decode(r.decoded, buf); err != nil {
+			if _, _, err := Decode(r.decoded, buf); err != nil {
 				r.err = err
 				return 0, r.err
 			}
